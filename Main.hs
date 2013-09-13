@@ -7,22 +7,19 @@
 module Main where
 
 import Prelude hiding (mapM_)
+
 import Control.Applicative
 import Control.Lens hiding ((|>))
-import Control.Lens.TH
-import Control.Monad (join, when)
+import Control.Monad (join)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Maybe (MaybeT(..))
 import Control.Monad.Reader.Class (asks)
 import Control.Monad.State.Class (get, modify, put)
-import Data.Time (getCurrentTime)
+import Control.Monad.Trans.Maybe (MaybeT(..))
 import Data.Foldable (forM_, mapM_)
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe)
 import Data.Monoid (Monoid(..))
-import Data.Sequence ((|>))
 import Data.Text (Text)
-import Data.Time (UTCTime)
+import Data.Time (UTCTime, getCurrentTime)
 import Data.Typeable (Typeable)
 import Text.Blaze ((!))
 
@@ -108,7 +105,7 @@ initCaaAdmin =
     let caaOption :: Config.Configured a => Text -> a -> IO a
         caaOption k def = Config.lookupDefault def caaMqConfig k
 
-    rabbitConn <- liftIO $ do
+    rabbitConn <- liftIO $
       join $ AMQP.openConnection <$> caaOption "host" "127.0.0.1"
                                  <*> caaOption "vhost" "/"
                                  <*> caaOption "username" "guest"
