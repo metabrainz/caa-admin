@@ -78,10 +78,10 @@ popEvents ids = do
   let (popped, rest) = IntMap.partitionWithKey (\i _ -> i`elem` ids) m
   IntMap.elems popped <$ put (FailedEvents rest nextId)
 
-$(SafeCopy.deriveSafeCopy 0 'SafeCopy.base ''EventType)
-$(SafeCopy.deriveSafeCopy 0 'SafeCopy.base ''FailedEvent)
-$(SafeCopy.deriveSafeCopy 0 'SafeCopy.base ''FailedEvents)
-$(AcidState.makeAcidic ''FailedEvents ['allFailedEvents, 'appendFailedEvent, 'popEvents])
+SafeCopy.deriveSafeCopy 0 'SafeCopy.base ''EventType
+SafeCopy.deriveSafeCopy 0 'SafeCopy.base ''FailedEvent
+SafeCopy.deriveSafeCopy 0 'SafeCopy.base ''FailedEvents
+AcidState.makeAcidic ''FailedEvents ['allFailedEvents, 'appendFailedEvent, 'popEvents]
 
 --------------------------------------------------------------------------------
 data CaaAdmin = CaaAdmin { _acid :: Snap.Snaplet (SnapletAcidState.Acid FailedEvents)
