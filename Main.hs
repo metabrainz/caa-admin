@@ -107,7 +107,7 @@ initCaaAdmin =
 
     rabbitConn <- liftIO $
       join $ AMQP.openConnection <$> caaOption "host" "127.0.0.1"
-                                 <*> caaOption "vhost" "/"
+                                 <*> caaOption "vhost" "/cover-art-archive"
                                  <*> caaOption "username" "guest"
                                  <*> caaOption "password" "guest"
 
