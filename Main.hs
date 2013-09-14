@@ -165,7 +165,8 @@ showFailures = do
                   H.td $ Blaze.toHtml (failedEventType event)
                   H.td $ if Sequence.null (failureReasons event)
                     then "Nothing logged"
-                    else H.ul (mapM_ (H.li . H.toMarkup) $ failureReasons event)
+                    else H.pre $
+                      H.ul (mapM_ (H.li . H.toMarkup) $ failureReasons event)
                   H.td $ H.toMarkup $ failedEventBody event
 
             H.input ! A.type_ "submit" ! A.value "Retry Selected Events"
