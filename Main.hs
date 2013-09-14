@@ -42,27 +42,44 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
 --------------------------------------------------------------------------------
+-- | The possible type of event that the CAA-indexer should be able to process.
 data EventType = Index | Delete | Move
   deriving (Show)
 
 instance H.ToMarkup EventType where
   toMarkup = H.toMarkup . show
 
-data FailedEvent = FailedEvent { failureReasons :: Sequence.Seq Text
-                               , failedAt :: UTCTime
-                               , failedEventType :: EventType
-                               , failedEventBody :: Text
-                               , failedEventId :: Int
-                               }
+-- | An event that could not be processed by the CAA-indexer due to exceptional
+-- circumstances.
+data FailedEvent = FailedEvent
+    { failureReasons :: Sequence.Seq Text
+    -- ^ An ordered list of exceptions that were encountered at each attempt to
+    -- process this event.
+    , failedAt :: UTCTime
+    -- ^ The time *this application* observed the failure
+    , failedEventType :: EventType
+    -- ^ The type of event
+    , failedEventBody :: Text
+    -- ^ The event payload
+    , failedEventId :: Int
+    -- ^ An unique identifier for this event, that is internal to this
+    -- application.
+    }
   deriving (Show, Typeable)
 
+-- | The state of this application is an 'IntMap', sending integers to
+-- 'FailedEvent's; and also a single Int specifying the next 'failedEventId'. We
+-- track this separately, in order to ensure that 'failedEventId' is unique.
 data FailedEvents = FailedEvents (IntMap.IntMap FailedEvent) Int
   deriving (Typeable)
 
 --------------------------------------------------------------------------------
+-- | Return a list of all 'FailedEvent's that have not yet been handled. Ordered
+-- from oldest to newest.
 allFailedEvents :: AcidState.Query FailedEvents [FailedEvent]
 allFailedEvents = asks $ \(FailedEvents m _) -> IntMap.elems m
 
+-- | Append a new failed event to the list of known failed events.
 appendFailedEvent
   :: Sequence.Seq Text -> UTCTime -> EventType -> Text
   -> AcidState.Update FailedEvents ()
@@ -72,26 +89,37 @@ appendFailedEvent reasons time evType body =
         newId = i + 1
     in FailedEvents (IntMap.insert newId event events) newId
 
-popEvents :: [Int] -> AcidState.Update FailedEvents [FailedEvent]
-popEvents ids = do
+-- | Delete and select 'FailedEvents' by their 'failedEventId'. All successfully
+-- removed 'FailedEvent's are returned. If an ID does not exist in
+-- 'FailedEvents', then that ID is discarded.
+deleteEvents :: [Int] -> AcidState.Update FailedEvents [FailedEvent]
+deleteEvents ids = do
   FailedEvents m nextId <- get
-  let (popped, rest) = IntMap.partitionWithKey (\i _ -> i`elem` ids) m
-  IntMap.elems popped <$ put (FailedEvents rest nextId)
+  let (deleted, rest) = IntMap.partitionWithKey (\i _ -> i`elem` ids) m
+  IntMap.elems deleted <$ put (FailedEvents rest nextId)
 
 SafeCopy.deriveSafeCopy 0 'SafeCopy.base ''EventType
 SafeCopy.deriveSafeCopy 0 'SafeCopy.base ''FailedEvent
 SafeCopy.deriveSafeCopy 0 'SafeCopy.base ''FailedEvents
-AcidState.makeAcidic ''FailedEvents ['allFailedEvents, 'appendFailedEvent, 'popEvents]
+AcidState.makeAcidic ''FailedEvents ['allFailedEvents, 'appendFailedEvent, 'deleteEvents]
 
 --------------------------------------------------------------------------------
-data CaaAdmin = CaaAdmin { _acid :: Snap.Snaplet (SnapletAcidState.Acid FailedEvents)
-                         , retryMessage :: FailedEvent -> IO ()
-                         }
+-- | The state of the entire CAA-admin application, as required by Snap.
+data CaaAdmin = CaaAdmin
+    { _acid :: Snap.Snaplet (SnapletAcidState.Acid FailedEvents)
+    -- ^ A snaplet-acid-state to the applications state.
+    , retryMessage :: FailedEvent -> IO ()
+    -- ^ A function that attempts to retry a 'FailedEvent'. This is part of the
+    -- application state, as the behaviour of this function depends on
+    -- parameters in the configuration files.
+    }
 makeLenses ''CaaAdmin
 
 instance SnapletAcidState.HasAcid CaaAdmin FailedEvents where
   getAcidStore = view (acid . Snap.snapletValue)
 
+-- | Initialize the CAA-admin web site by loading the previous state from
+-- a local file (if possible), and connect to RabbitMQ.
 initCaaAdmin :: Snap.SnapletInit CaaAdmin CaaAdmin
 initCaaAdmin =
   Snap.makeSnaplet "caa-admin" "Cover Art Archive administration" Nothing $ do
@@ -185,7 +213,7 @@ retry = do
       <$> Snap.getPostParams
 
   retryEvent <- Snap.getsSnapletState (view $ Snap.snapletValue . to retryMessage)
-  Snap.with acid (SnapletAcidState.update $ PopEvents eventIds)
+  Snap.with acid (SnapletAcidState.update $ DeleteEvents eventIds)
     >>= liftIO . mapM_ retryEvent
 
 --------------------------------------------------------------------------------
