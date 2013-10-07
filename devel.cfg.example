@@ -1,0 +1,20 @@
+# This file allows you to reconfigure the CAA-admin site. Commented values
+# indicate the default value.
+cover-art-archive
+{
+  # The exchange to redeliver any failures to to try them again
+  #retry-exchange = "cover-art-archive"
+
+  # The queue to listen to for failures
+  #failure-queue "cover-art-archive.failed"
+
+  # The host running RabbitMQ
+  # host = "127.0.0.1"
+
+  # The username/password to connect to RabbitMQ with
+  #username = "guest"
+  #password = "guest"
+
+  # The virtual host containing CAA queues
+  #vhost = "/cover-art-archive"
+}
