@@ -55,7 +55,7 @@ data FailedEvent = FailedEvent
     { failureReasons :: Sequence.Seq Text
     -- ^ An ordered list of exceptions that were encountered at each attempt to
     -- process this event.
-    , failedAt :: UTCTime
+    , observedFailureAt :: UTCTime
     -- ^ The time *this application* observed the failure
     , failedEventType :: EventType
     -- ^ The type of event
@@ -189,7 +189,7 @@ showFailures = do
                 forM_ events $ \event -> H.tr $ do
                   H.td $ H.input ! A.type_ "checkbox" ! A.name "event_id"
                                  ! A.value (Blaze.toValue $ failedEventId event)
-                  H.td $ Blaze.toHtml (show $ failedAt event)
+                  H.td $ Blaze.toHtml (show $ observedFailureAt event)
                   H.td $ Blaze.toHtml (failedEventType event)
                   H.td $ if Sequence.null (failureReasons event)
                     then "Nothing logged"
