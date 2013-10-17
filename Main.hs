@@ -150,7 +150,6 @@ initCaaAdmin =
 
     retryChan <- liftIO (AMQP.openChannel rabbitConn)
     retryExchange <- liftIO (caaOption "retry-exchange" "cover-art-archive")
-    liftIO $ print retryExchange
     return $ CaaAdmin acidStateSnaplet (mkRetryEvent retryChan retryExchange)
 
  where
@@ -248,12 +247,11 @@ consumeFailures conn failureQueue allFailures = do
 
         now <- liftIO getCurrentTime
 
-        liftIO $ do
-          result <- AcidState.update allFailures $
+        liftIO $
+          AcidState.update allFailures $
             AppendFailedEvent
               reasons now evType
               (Text.decodeUtf8 $ AMQP.msgBody msg ^. strict)
-          print result
 
       case result of
         Nothing -> requeue retryChan env
