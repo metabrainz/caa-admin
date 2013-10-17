@@ -17,7 +17,7 @@ executable caa-admin
     blaze-html >= 0.6,
     blaze-markup >= 0.5,
     configurator >= 0.2,
-    containers >= 0.5,
+    containers >= 0.4.2.1,
     lens >= 3.9,
     mtl >= 2.1,
     safecopy >= 0.8,
