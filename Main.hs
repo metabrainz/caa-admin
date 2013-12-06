@@ -188,7 +188,9 @@ showFailures = do
                 forM_ events $ \event -> H.tr $ do
                   H.td $ H.input ! A.type_ "checkbox" ! A.name "event_id"
                                  ! A.value (Blaze.toValue $ failedEventId event)
-                  H.td $ Blaze.toHtml (show $ observedFailureAt event)
+                                 ! A.id ("checkbox-" ++ Blaze.toValue $ failedEventId event)
+                  H.td $ H.label ! A.for ("checkbox-" ++ Blaze.toValue $ failedEventId event)
+                                 $ Blaze.toHtml (show $ observedFailureAt event)
                   H.td $ Blaze.toHtml (failedEventType event)
                   H.td $ if Sequence.null (failureReasons event)
                     then "Nothing logged"
