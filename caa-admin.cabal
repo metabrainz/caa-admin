@@ -12,7 +12,7 @@ executable caa-admin
   main-is: Main.hs
   build-depends:
     acid-state >= 0.11.3,
-    amqp >= 0.5,
+    amqp >= 0.5 && < 0.7,
     base >=4.5 && < 5,
     blaze-html >= 0.6,
     blaze-markup >= 0.5,
