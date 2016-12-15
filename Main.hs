@@ -8,7 +8,7 @@ module Main where
 
 import Prelude hiding (mapM_)
 
-import Control.Applicative
+import Control.Applicative ()
 import Control.Lens hiding ((|>))
 import Control.Monad (join)
 import Control.Monad.IO.Class (liftIO)
@@ -17,7 +17,7 @@ import Control.Monad.State.Class (get, modify, put)
 import Control.Monad.Trans.Maybe (MaybeT(..))
 import Data.Foldable (forM_, mapM_)
 import Data.Maybe (fromMaybe)
-import Data.Monoid (Monoid(..))
+import Data.Monoid ()
 import Data.Text (Text)
 import Data.Time (UTCTime, getCurrentTime)
 import Data.Typeable (Typeable)
