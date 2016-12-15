@@ -20,6 +20,7 @@ executable caa-admin
     containers >= 0.4.2.1,
     lens >= 3.9,
     mtl >= 2.1,
+    network >= 2.6,
     safecopy >= 0.8,
     snap >= 0.13,
     snaplet-acid-state >= 0.2,

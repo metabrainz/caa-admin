@@ -11,6 +11,9 @@ cover-art-archive
   # The host running RabbitMQ
   # host = "127.0.0.1"
 
+  # The port on which RabbitMQ is listening
+  # port = 5672
+
   # The username/password to connect to RabbitMQ with
   #username = "guest"
   #password = "guest"

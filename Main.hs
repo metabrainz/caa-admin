@@ -21,6 +21,7 @@ import Data.Monoid (Monoid(..))
 import Data.Text (Text)
 import Data.Time (UTCTime, getCurrentTime)
 import Data.Typeable (Typeable)
+import Network.Socket.Internal ()
 import Text.Blaze ((!))
 
 import qualified Data.Acid as AcidState
@@ -134,10 +135,11 @@ initCaaAdmin =
         caaOption k def = Config.lookupDefault def caaMqConfig k
 
     rabbitConn <- liftIO $
-      join $ AMQP.openConnection <$> caaOption "host" "127.0.0.1"
-                                 <*> caaOption "vhost" "/cover-art-archive"
-                                 <*> caaOption "username" "guest"
-                                 <*> caaOption "password" "guest"
+      join $ AMQP.openConnection' <$> caaOption "host" "127.0.0.1"
+                                  <*> ((caaOption "port" 5672) >>= \x -> return $ fromInteger x)
+                                  <*> caaOption "vhost" "/cover-art-archive"
+                                  <*> caaOption "username" "guest"
+                                  <*> caaOption "password" "guest"
 
     failureQueue <- liftIO (caaOption "failure-queue" "cover-art-archive.failed")
     stopListening <- liftIO . consumeFailures rabbitConn failureQueue $ acidState
