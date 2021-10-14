@@ -34,3 +34,5 @@ RUN chown -R caa:caa $CAA_ADMIN_ROOT && \
 COPY docker/consul-template.conf /etc/
 COPY docker/devel.cfg.ctmpl ./
 COPY docker/start_caa_admin.sh /usr/local/bin/
+RUN mkdir -p /etc/service/consul-template
+COPY docker/consul-template.run /etc/service/consul-template/run
